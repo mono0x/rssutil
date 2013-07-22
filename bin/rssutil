@@ -10,7 +10,7 @@ module RSSUtil
     def disable_rss(nic)
       interrupt_numbers(nic).each do |irq|
         open("/proc/irq/#{irq}/smp_affinity", 'w') do |f|
-          f << 'ff'
+          f << '%x' % ((1 << number_of_processors) - 1)
         end
       end
     end
