@@ -40,8 +40,9 @@ module RSSUtil
     end
 
     def interrupt_numbers(nic)
-      # Dir.entries('...') => [ '.', '..', ... ]
-      Dir.entries("/sys/class/net/#{nic}/device/msi_irqs").drop(3).map(&:to_i).sort
+      open('/proc/interrupts').read.each_line.map {|l|
+        l.match(/^\s*(?<irq>\d+).+#{nic}-/) {|m| Integer(m[:irq]) }
+      }.compact
     end
 
   end
