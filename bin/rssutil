@@ -16,8 +16,12 @@ module RSSUtil
     end
 
     desc 'enable_rss', 'enable RSS'
-    def enable_rss(nic, from = 0, to = number_of_processors - 1)
-      cpus = (Integer(from)..Integer(to)).to_a
+    def enable_rss(nic, assignment = "0-#{number_of_processors - 1}")
+      cpus = assignment.split(',').map {|section|
+        section.match(/\A(?<from>\d+)(?:-(?<to>\d+))?\z/) {|m|
+          m[:to] ? (Integer(m[:from])..Integer(m[:to])).to_a : [ Integer(m[:from]) ]
+        }
+      }.inject(&:+)
       irqs = interrupt_numbers(nic)
       (cpus * ((irqs.size * 2 - 1) / cpus.size)).zip(irqs).select {|cpu, irq| cpu && irq }.each do |cpu, irq|
         open("/proc/irq/#{irq}/smp_affinity", 'w') do |f|
